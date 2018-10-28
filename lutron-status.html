@@ -1,0 +1,49 @@
+<script type="text/javascript">
+    RED.nodes.registerType('lutron-status', {
+        category: 'Lutron',
+        defaults: {
+            confignode: {value: "", type: "lutron-config"},
+            name: {value:""},
+        },
+        inputs: 0,
+        outputs: 1,
+        color: "#42aeed",
+        label: function (){
+            return this.name || "Lutron Status";
+        },
+        paletteLabel: "Status",
+        oneditprepare: function() {
+            var $DN=$('#node-input-device_name');
+            var configNode = RED.nodes.node(this.confignode);
+            // console.log(configNode.deviceMap);
+            var key = '';
+            var tsel = '';
+            for (key in configNode.deviceMap) {
+                if (this.name == key) {
+                    tsel += '<option selected value"' + key + '">' + key + '</option>';
+                } else {
+                    tsel += '<option value"' + key + '">' + key + '</option>';
+                }
+            }
+            $('#node-input-device_name').html(tsel);
+        },
+        oneditsave: function() {
+            this.name=$('#node-input-device_name option:selected').text();
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="lutron-status">
+    <div class="form-row">
+        <label for="node-input-confignode"> Lutron Config</label>
+        <input type="text" id="node-input-confignode">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-device_name"><i class="fa fa-tag"></i> Device Name</label>
+        <select id="node-input-device_name" style="width:200px; font-size: 10px !importnat; height: 24px; padding: 0;">
+            <option value="foo">foo</option>
+            <option value="bar">bar</bar>
+        </select>
+    </div>
+</script>

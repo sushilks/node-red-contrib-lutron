@@ -1,0 +1,139 @@
+
+<script type="text/javascript">
+    RED.nodes.registerType('lutron-config', {
+        category: 'config',
+        defaults: {
+            name: {
+                value: "",
+                required: true
+            },
+            ipaddress: {
+                value: ""
+            },
+            deviceMap: {
+                "Living Room Light": 34,
+                "Master Bedroom Light": 32
+            },
+        },
+        label: function () {
+            return this.name;
+        },
+        oneditprepare: function () {
+
+            var key='';
+            var tableContent = '<table class="table"> <tr><th>Name</th><th>Device ID</th><th></th>';
+            tableContent += '<th></th><span id="lutron-table-add" class="lutron-table-add fa fa-plus"></span></tr>';
+            var deviceMap = this.deviceMap || this._def.defaults.deviceMap;
+            for (key in deviceMap) {
+                tableContent += '<tr>';
+                tableContent += '<td contenteditable="true">' + key + '</td>';
+                tableContent += '<td contenteditable="true">' + deviceMap[key] + '</td>';
+                tableContent += '<td> <span class="lutron-table-remove fa fa-times"></span> </td>'
+                tableContent += '</tr>';
+            }
+            // add one hidden entry for adding rows
+            tableContent += '<tr class="hide">'
+            tableContent += '<td contenteditable="true">Add Name</td>'
+            tableContent += '<td contenteditable="true">0</td>'
+            tableContent += '<td> <span class="lutron-table-remove fa fa-times"></span> </td>'
+
+            tableContent += '</tr></table>';
+            $('#lutron-table').html(tableContent);
+
+            var $TABLE = $('#lutron-table');
+            var $BTNADD = $('#lutron-table-add');
+
+            $BTNADD.click(function () {
+                var $clone = $TABLE.find('tr.hide').clone(true).removeClass('hide table-line');
+                $TABLE.find('table').append($clone);
+            });
+
+            $('.lutron-table-remove').click(function () {
+                $(this).parents('tr').detach();
+            });
+
+            // A few jQuery helpers for exporting only
+            jQuery.fn.pop = [].pop;
+            jQuery.fn.shift = [].shift;
+        },
+        oneditsave: function () {
+            var $TABLE = $('#lutron-table');
+            var $rows = $TABLE.find('tr:not(:hidden)');
+            var headers = [];
+            var data = {};
+
+            // Get the headers (add special header logic here)
+            $($rows.shift()).find('th:not(:empty)').each(function () {
+                headers.push($(this).text().toLowerCase());
+            });
+
+            // Turn all existing rows into a loopable array
+            $rows.each(function () {
+                var $td = $(this).find('td');
+                var h = {};
+
+                // Use the headers from earlier to name our hash keys
+                headers.forEach(function (header, i) {
+                h[header] = $td.eq(i).text();
+                });
+
+                data[h['name']] = h['device id'];
+            });
+            this.deviceMap = data;
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="lutron-config">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="Name"></input>
+    </div>
+    <div><p></p></div>
+    <div class="form-row">
+        <label for="node-config-input-ipaddress"><i class="fa fa-globe"></i> IP Address</label>
+        <input type="text" id="node-config-input-ipaddress" placeholder="192.168.xx.xx"></input>
+    </div>
+   <!--      Table Class -->
+   <h2 style="color:brown; margin-left:490px;margin-top:0px;">Device mapping table</h2>
+
+   <div class="container">
+            <div id="lutron-table" class="lutron-table-editable">
+            </div>
+
+        </div>
+
+    <style>
+
+            .lutron-table-editable {
+                position: relative;
+
+                .glyphicon {
+                  font-size: 20px;
+                }
+              }
+
+              .lutron-table-remove {
+                color: #700;
+                cursor: pointer;
+                &:hover {
+                  color: #f00;
+                }
+              }
+
+              .lutron-table-add {
+                color: #070;
+                cursor: pointer;
+                position: absolute;
+                top: 8px;
+                right: 0;
+
+                &:hover {
+                  color: #0b0;
+                }
+              }
+    </style>
+</script>
+
+
+
