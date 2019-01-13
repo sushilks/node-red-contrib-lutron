@@ -4,17 +4,17 @@ module.exports = function (RED) {
     RED.nodes.createNode(this, status);
     var configNode = RED.nodes.getNode(status.confignode);
     this.devName = status.name;
-    this.devId = configNode.deviceMap[this.devName];
+    this.devId = parseInt(configNode.deviceMap[this.devName]);
     // register a callback on config node so that it can call this
     // node
     // then it will call the this.send(msg), msg = {payload: "hi"}
     configNode.lutronEvent.on('data', (function (node, d) {
 
       if (node.devId && node.devId !== 0) {
-        if (d.cmd === '~' && d.type === 'OUTPUT' &&
-          d.deviceId == node.devId) {
-          var value = d.param;
-          var action = d.action;
+        if (d.cmd === '~' && (d.type === 'DEVICE' || d.type === 'OUTPUT') &&
+          parseInt(d.deviceId) == node.devId) {
+          var value = parseInt(d.param);
+          var action = parseInt(d.action);
           /*
           for dimmer action is always 1
           for pico action.param
