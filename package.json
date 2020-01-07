@@ -8,7 +8,6 @@
   },
   "node-red": {
     "nodes": {
-      "lower-case66": "lower-case.js",
       "lutron-config": "lutron-config.js",
       "lutron-status": "lutron-status.js",
       "lutron-control": "lutron-control.js"
@@ -17,7 +16,6 @@
   "repository": {
     "type": "git",
     "url": "git@github.com:sushilks/node-red-contrib-lutron.git"
-
   },
   "keywords": [
     "lutron",
