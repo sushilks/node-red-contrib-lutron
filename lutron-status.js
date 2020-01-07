@@ -9,7 +9,6 @@ module.exports = function (RED) {
     // node
     // then it will call the this.send(msg), msg = {payload: "hi"}
     configNode.lutronEvent.on('data', (function (node, d) {
-
       if (node.devId && node.devId !== 0) {
         if (d.cmd === '~' && (d.type === 'DEVICE' || d.type === 'OUTPUT') &&
           parseInt(d.deviceId) == node.devId) {
