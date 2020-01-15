@@ -2,18 +2,19 @@
     RED.nodes.registerType('lutron-control', {
         category: 'Lutron',
         defaults: {
-            confignode: {value: "", type: "lutron-config"},
-            name: {value:""}
+            confignode: { value: "", type: "lutron-config" },
+            name: { value: "" }
         },
         inputs: 1,
         outputs: 0,
         color: "#42aeed",
-        label: function (){
+        label: function () {
             return this.name || "Lutron Control";
         },
+        icon: 'icons/lutron.png',
         paletteLabel: "Control",
-        oneditprepare: function() {
-            var $DN=$('#node-input-device_name');
+        oneditprepare: function () {
+            var $DN = $('#node-input-device_name');
             var configNode = RED.nodes.node(this.confignode);
             // console.log(configNode.deviceMap);
             var key = '';
@@ -27,8 +28,8 @@
             }
             $('#node-input-device_name').html(tsel);
         },
-        oneditsave: function() {
-            this.name=$('#node-input-device_name option:selected').text();
+        oneditsave: function () {
+            this.name = $('#node-input-device_name option:selected').text();
         }
     });
 </script>
