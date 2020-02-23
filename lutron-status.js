@@ -17,10 +17,10 @@ module.exports = function (RED) {
           /*
           for dimmer action is always 1
           for pico action.param
-            FullOn => a=2, p=4
-            up     => a=5, p=4
-            down   => a=6  p=4
-            off    => a=4, p=4
+            FullOn => a=2, p=3
+            up     => a=5, p=3
+            down   => a=6  p=3
+            off    => a=4, p=3
           for on off switch
             action =1 p=0 or 100
           */
@@ -29,7 +29,7 @@ module.exports = function (RED) {
             node.send({
               payload: value
             });
-          } else if (value === 4) {
+          } else if (value === 3) {
             var m = '';
             if (action === 2)
               m = 'on';

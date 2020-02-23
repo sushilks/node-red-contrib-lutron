@@ -43,15 +43,15 @@ module.exports = function (RED) {
             console.log('telnet close');
         });
         this.telnet.on('error', function () {
-            console.log('telent error');
+            console.log('telnet error');
         });
         this.telnet.on('failedlogin', function () {
-            console.log('telent failed login');
+            console.log('telnet failed login');
         });
         this.lutronSend = function (msg, fn) {
-            this.telent.getSocket().write(msg + '\n', fn);
+            this.telnet.getSocket().write(msg + '\n', fn);
         }
-        this.lutrongUpdate = function (deviceId, fn) {
+        this.lutronUpdate = function (deviceId, fn) {
             this.lutronSend('?OUTPUT,' + deviceId + ',1', fn);
         }
         this.lutronSend = function (deviceId, val, fn) {
