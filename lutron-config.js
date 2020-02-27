@@ -14,6 +14,7 @@ module.exports = function (RED) {
         this.deviceMap = config.deviceMap;
         node.devices = {};
         node.lutronEvent = new events.EventEmitter();
+        node.includeAction = config.includeAction;
         var params = {
             host: this.lutronLoc,
             port: this.port,

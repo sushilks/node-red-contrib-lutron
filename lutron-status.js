@@ -8,6 +8,8 @@ module.exports = function (RED) {
     // register a callback on config node so that it can call this
     // node
     // then it will call the this.send(msg), msg = {payload: "hi"}
+    console.log(typeof configNode.includeAction);
+    console.log(configNode.includeAction);
     configNode.lutronEvent.on('data', (function (node, d) {
       if (node.devId && node.devId !== 0) {
         if (d.cmd === '~' && (d.type === 'DEVICE' || d.type === 'OUTPUT') &&

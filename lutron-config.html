@@ -14,6 +14,9 @@
             },
             timeout: {
                 value: 45000
+            },
+            includeAction: {
+                value: false
             }
         },
         label: function () {
@@ -98,6 +101,10 @@
     <div class="form-row">
         <label for="node-config-input-timeout"><i class="fa fa-globe"></i> Timeout (ms)</label>
         <input type="text" id="node-config-input-timeout" placeholder="30000"></input>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-includeAction"><i class="fa fa-globe"></i> Include Action Data</label>
+        <input type="checkbox" id="node-config-input-includeAction"></input>
     </div>
    <!--      Table Class -->
    <h2 style="color:brown; margin-left:490px;margin-top:0px;">Device mapping table</h2>
