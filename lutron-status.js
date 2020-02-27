@@ -5,11 +5,10 @@ module.exports = function (RED) {
     var configNode = RED.nodes.getNode(status.confignode);
     this.devName = status.name;
     this.devId = parseInt(configNode.deviceMap[this.devName]);
+    this.sendObj = !!configNode.includeAction;
     // register a callback on config node so that it can call this
     // node
     // then it will call the this.send(msg), msg = {payload: "hi"}
-    console.log(typeof configNode.includeAction);
-    console.log(configNode.includeAction);
     configNode.lutronEvent.on('data', (function (node, d) {
       if (node.devId && node.devId !== 0) {
         if (d.cmd === '~' && (d.type === 'DEVICE' || d.type === 'OUTPUT') &&
@@ -29,10 +28,10 @@ module.exports = function (RED) {
           if (action == '1') {
             // either dimmre of switch
             node.send({
-              payload: value
+              payload: node.sendObj ? d : value
             });
-          } else if (value === 3) {
-            var m = '';
+          } else if (value === 3 || node.sendObj) {
+            var m = action;
             if (action === 2)
               m = 'on';
             else if (action === 5)
@@ -41,8 +40,11 @@ module.exports = function (RED) {
               m = 'down';
             else if (action === 4)
               m = 'off';
+
+            d.action = m;
+            d.param = value === 3 ? 'keydown' : 'keyup';
             node.send({
-              payload: m
+              payload: node.sendObj ? d : m
             });
           }
         }
