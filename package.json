@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-lutron",
-  "version": "1.0.3",
+  "version": "1.2.0",
   "description": "A node for communicating with Lutron Caseta Pro Hub",
   "main": "index.js",
   "scripts": {
@@ -29,8 +29,8 @@
   "author": "Sushil Singh <sushilks@gmail.com>",
   "license": "Apache 2.0",
   "dependencies": {
-    "events": "^3.0.0",
-    "telnet-client": "^0.16.1"
+    "events": "^3.2.0",
+    "telnet-client": "^1.4.6"
   },
   "maintainers": [
     {
