@@ -55,8 +55,13 @@ module.exports = function (RED) {
       }
     }).bind(null, this));
 
+    const statusHandler = status => this.status(status);
+
     // Update node status
-    configNode.statusEvent.on('update', status => this.status(status));
+    configNode.statusEvent.on('update', statusHandler);
+
+    // Cleanup on close
+    node.on('close', (done) => configNode.statusEvent.removeListener('update', statusHandler));
   }
   RED.nodes.registerType('lutron-status', LutronStatusNode);
 }

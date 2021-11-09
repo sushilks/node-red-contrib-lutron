@@ -114,9 +114,10 @@ module.exports = function (RED) {
 
         // Cleanup on close
         node.on('close', function(done) {
-            this.telnet.end()
-            .then(() => done())
-            .catch(() => this.telnet.destroy().then(() => done()));
+            node.log('Node shutting down');
+            node.telnet.end()
+                .then(() => done())
+                .catch(() => this.telnet.destroy().then(() => done()));
         });
 
         this.telnet.connect(params);
