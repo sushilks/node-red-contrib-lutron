@@ -35,7 +35,7 @@ module.exports = function (RED) {
         };
 
         const updateStatus = (connected, msg) => {
-            this.statusEvent.emit('update', {
+            node.statusEvent.emit('update', {
                 fill: connected ? 'green' : 'red',
                 shape: 'dot',
                 text: msg
@@ -47,28 +47,28 @@ module.exports = function (RED) {
             self.lutronRecv(pkt);
         }).bind(null, node));
         this.telnet.on('connect', function () {
-            this.connected = true;
-            this.log('telnet connect');
+            node.connected = true;
+            node.log('telnet connect');
             updateStatus(true, 'connected');
         });
         this.telnet.on('close', function () {
-            this.connected = false;
-            this.log('telnet close');
+            node.connected = false;
+            node.log('telnet close');
             updateStatus(false, 'closed');
         });
         this.telnet.on('error', function () {
-            this.warn('telnet error');
+            node.warn('telnet error');
             updateStatus(false, 'telnet error');
         });
         this.telnet.on('failedlogin', function () {
-            this.warn('telnet failed login');
+            node.warn('telnet failed login');
             updateStatus(false, 'login failed');
         });
         this.telnet.on('timeout', function () {
-            this.log('telnet timeout');
+            node.log('telnet timeout');
         });
         this.telnet.on('end', function () {
-            this.warn('telnet remote ended connection');
+            node.warn('telnet remote ended connection');
             updateStatus(false, 'ended');
         });
 
@@ -113,7 +113,7 @@ module.exports = function (RED) {
         }
 
         // Cleanup on close
-        this.on('close', function(done) {
+        node.on('close', function(done) {
             this.telnet.end()
             .then(() => done())
             .catch(() => this.telnet.destroy().then(() => done()));
