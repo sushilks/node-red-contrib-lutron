@@ -54,6 +54,9 @@ module.exports = function (RED) {
         });
       }
     }).bind(null, this));
+
+    // Update node status
+    configNode.statusEvent.on('update', status => this.status(status));
   }
   RED.nodes.registerType('lutron-status', LutronStatusNode);
 }

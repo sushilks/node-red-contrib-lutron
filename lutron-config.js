@@ -11,9 +11,10 @@ module.exports = function (RED) {
         node.connected = false;
         node.telnet = new Telnet();
         node.port = 23;
-        this.deviceMap = config.deviceMap;
+        node.deviceMap = config.deviceMap;
         node.devices = {};
         node.lutronEvent = new events.EventEmitter();
+        node.statusEvent = new events.EventEmitter();
         node.includeAction = config.includeAction;
         var params = {
             host: this.lutronLoc,
@@ -32,29 +33,46 @@ module.exports = function (RED) {
             var str = '?OUTPUT,' + devId + ',1';
             this.telnet.getSocket().write(str + '\n');
         };
+
+        const updateStatus = (connected, msg) => {
+            this.statusEvent.emit('update', {
+                fill: connected ? 'green' : 'red',
+                shape: 'dot',
+                text: msg
+            });
+        };
+
+        // Telnet handlers
         this.telnet.on('data', (function (self, pkt) {
             self.lutronRecv(pkt);
         }).bind(null, node));
         this.telnet.on('connect', function () {
             this.connected = true;
-            console.log('telnet connect');
+            this.log('telnet connect');
+            updateStatus(true, 'connected');
         });
         this.telnet.on('close', function () {
             this.connected = false;
-            console.log('telnet close');
+            this.log('telnet close');
+            updateStatus(false, 'closed');
         });
         this.telnet.on('error', function () {
-            console.log('telnet error');
+            this.warn('telnet error');
+            updateStatus(false, 'telnet error');
         });
         this.telnet.on('failedlogin', function () {
-            console.log('telnet failed login');
+            this.warn('telnet failed login');
+            updateStatus(false, 'login failed');
         });
         this.telnet.on('timeout', function () {
-            console.log('telnet timeout');
+            this.log('telnet timeout');
         });
         this.telnet.on('end', function () {
-            console.log('telnet remote ended connection');
+            this.warn('telnet remote ended connection');
+            updateStatus(false, 'ended');
         });
+
+        // Lutron handlers
         this.lutronSend = function (msg, fn) {
             this.telnet.getSocket().write(msg + '\n', fn);
         }
@@ -73,7 +91,7 @@ module.exports = function (RED) {
                 var deviceId = parseInt(cs[1])
                 var action = parseInt(cs[2])
                 var param = parseFloat(cs[3])
-                //              console.log('[',cmd,',', type, ',',deviceId,
+                //              this.log('[',cmd,',', type, ',',deviceId,
                 //              ',', action,',', param,']')
                 this.lutronEvent.emit('data', {
                     cmd: cmd,
@@ -93,6 +111,14 @@ module.exports = function (RED) {
                 }
             }
         }
+
+        // Cleanup on close
+        this.on('close', function(done) {
+            this.telnet.end()
+            .then(() => done())
+            .catch(() => this.telnet.destroy().then(() => done()));
+        });
+
         this.telnet.connect(params);
     }
     RED.nodes.registerType('lutron-config', LutronConfigNode);
