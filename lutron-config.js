@@ -7,7 +7,7 @@ module.exports = function (RED) {
     function LutronConfigNode(config) {
         RED.nodes.createNode(this, config);
         this.lutronLoc = config.ipaddress;
-        var node = this;
+        const node = this;
         node.connected = false;
         node.telnet = new Telnet();
         node.port = 23;
@@ -16,7 +16,7 @@ module.exports = function (RED) {
         node.lutronEvent = new events.EventEmitter();
         node.statusEvent = new events.EventEmitter();
         node.includeAction = config.includeAction;
-        var params = {
+        const params = {
             host: this.lutronLoc,
             port: this.port,
             shellPrompt: 'GNET>',
