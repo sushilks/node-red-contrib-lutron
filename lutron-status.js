@@ -61,7 +61,7 @@ module.exports = function (RED) {
     configNode.statusEvent.on('update', statusHandler);
 
     // Cleanup on close
-    this.on('close', (done) => configNode.statusEvent.removeListener('update', statusHandler));
+    this.on('close', () => configNode.statusEvent.removeListener('update', statusHandler));
   }
   RED.nodes.registerType('lutron-status', LutronStatusNode);
 }
