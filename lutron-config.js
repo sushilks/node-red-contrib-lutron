@@ -49,6 +49,12 @@ module.exports = function (RED) {
         this.telnet.on('failedlogin', function () {
             console.log('telnet failed login');
         });
+        this.telnet.on('timeout', function () {
+            console.log('telnet timeout');
+        });
+        this.telnet.on('end', function () {
+            console.log('telnet remote ended connection');
+        });
         this.lutronSend = function (msg, fn) {
             this.telnet.getSocket().write(msg + '\n', fn);
         }
