@@ -42,6 +42,11 @@ module.exports = function (RED) {
             });
         };
 
+        const reconnect = () => {
+            // Try reconnecting in 1 minute
+            setTimeout(() => this.telnet.connect(params), 60000);
+        }
+
         // Telnet handlers
         this.telnet.on('data', (function (self, pkt) {
             self.lutronRecv(pkt);
@@ -52,12 +57,16 @@ module.exports = function (RED) {
             updateStatus(true, 'connected');
         });
         this.telnet.on('close', function () {
+            if (node.connected) {
+                node.log('telnet close');
+            }
             node.connected = false;
-            node.log('telnet close');
             updateStatus(false, 'closed');
         });
         this.telnet.on('error', function () {
-            node.warn('telnet error');
+            if (node.connected) {
+                node.warn('telnet error');
+            }
             updateStatus(false, 'telnet error');
         });
         this.telnet.on('failedlogin', function () {
@@ -65,10 +74,17 @@ module.exports = function (RED) {
             updateStatus(false, 'login failed');
         });
         this.telnet.on('timeout', function () {
-            node.log('telnet timeout');
+            if (node.connected) {
+                node.log('telnet timeout');
+            }
         });
         this.telnet.on('end', function () {
-            node.warn('telnet remote ended connection');
+            if (node.connected) {
+                // This happens periodically (on bridge updates?)
+                // so try reconnecting afterwards
+                node.warn('telnet remote ended connection');
+                reconnect();
+            }
             updateStatus(false, 'ended');
         });
 
@@ -115,6 +131,7 @@ module.exports = function (RED) {
         // Cleanup on close
         node.on('close', function(done) {
             node.log('Node shutting down');
+            node.connected = false;
             node.telnet.end()
                 .then(() => done())
                 .catch(() => this.telnet.destroy().then(() => done()));
