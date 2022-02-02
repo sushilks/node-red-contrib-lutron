@@ -44,6 +44,7 @@ module.exports = function (RED) {
 
         const reconnect = () => {
             // Try reconnecting in 1 minute
+            node.log('reconnecting telnet')
             setTimeout(() => this.telnet.connect(params), 60000);
         }
 
