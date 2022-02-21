@@ -80,13 +80,16 @@ module.exports = function (RED) {
             }
         });
         this.telnet.on('end', function () {
+            let status = 'ended';
             if (node.connected) {
                 // This happens periodically (on bridge updates?)
                 // so try reconnecting afterwards
                 node.warn('telnet remote ended connection');
+                status = 'reconnecting';
                 reconnect();
             }
-            updateStatus(false, 'ended');
+
+            updateStatus(false, status);
         });
 
         // Lutron handlers
