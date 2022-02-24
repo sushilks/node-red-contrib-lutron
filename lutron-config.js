@@ -137,8 +137,8 @@ module.exports = function (RED) {
             node.log('Node shutting down');
             node.connected = false;
             node.telnet.end()
-                .then(() => done())
-                .catch(() => this.telnet.destroy().then(() => done()));
+                .catch(() => this.telnet.destroy())
+                .finally(done);
         });
 
         this.telnet.connect(params);
