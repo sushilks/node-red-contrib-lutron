@@ -5,6 +5,7 @@ module.exports = function (RED) {
     var configNode = RED.nodes.getNode(status.confignode);
     this.devName = status.name;
     this.devId = parseInt(configNode.deviceMap[this.devName]);
+    this.sendObj = !!configNode.includeAction;
     // register a callback on config node so that it can call this
     // node
     // then it will call the this.send(msg), msg = {payload: "hi"}
@@ -17,20 +18,20 @@ module.exports = function (RED) {
           /*
           for dimmer action is always 1
           for pico action.param
-            FullOn => a=2, p=4
-            up     => a=5, p=4
-            down   => a=6  p=4
-            off    => a=4, p=4
+            FullOn => a=2, p=3
+            up     => a=5, p=3
+            down   => a=6  p=3
+            off    => a=4, p=3
           for on off switch
             action =1 p=0 or 100
           */
           if (action == '1') {
             // either dimmre of switch
             node.send({
-              payload: value
+              payload: node.sendObj ? d : value
             });
-          } else if (value === 4) {
-            var m = '';
+          } else if (value === 3 || node.sendObj) {
+            var m = action;
             if (action === 2)
               m = 'on';
             else if (action === 5)
@@ -39,8 +40,11 @@ module.exports = function (RED) {
               m = 'down';
             else if (action === 4)
               m = 'off';
+
+            d.action = m;
+            d.param = value === 3 ? 'keydown' : 'keyup';
             node.send({
-              payload: m
+              payload: node.sendObj ? d : m
             });
           }
         }
@@ -50,6 +54,14 @@ module.exports = function (RED) {
         });
       }
     }).bind(null, this));
+
+    const statusHandler = status => this.status(status);
+
+    // Update node status
+    configNode.statusEvent.on('update', statusHandler);
+
+    // Cleanup on close
+    this.on('close', () => configNode.statusEvent.removeListener('update', statusHandler));
   }
   RED.nodes.registerType('lutron-status', LutronStatusNode);
 }

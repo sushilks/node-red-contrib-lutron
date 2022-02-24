@@ -7,14 +7,16 @@ module.exports = function (RED) {
     function LutronConfigNode(config) {
         RED.nodes.createNode(this, config);
         this.lutronLoc = config.ipaddress;
-        var node = this;
+        const node = this;
         node.connected = false;
         node.telnet = new Telnet();
         node.port = 23;
-        this.deviceMap = config.deviceMap;
+        node.deviceMap = config.deviceMap;
         node.devices = {};
         node.lutronEvent = new events.EventEmitter();
-        var params = {
+        node.statusEvent = new events.EventEmitter();
+        node.includeAction = config.includeAction;
+        const params = {
             host: this.lutronLoc,
             port: this.port,
             shellPrompt: 'GNET>',
@@ -31,27 +33,70 @@ module.exports = function (RED) {
             var str = '?OUTPUT,' + devId + ',1';
             this.telnet.getSocket().write(str + '\n');
         };
+
+        const updateStatus = (connected, msg) => {
+            node.statusEvent.emit('update', {
+                fill: connected ? 'green' : 'red',
+                shape: 'dot',
+                text: msg
+            });
+        };
+
+        const reconnect = () => {
+            // Try reconnecting in 1 minute
+            node.log('reconnecting telnet')
+            setTimeout(() => this.telnet.connect(params), 60000);
+        }
+
+        // Telnet handlers
         this.telnet.on('data', (function (self, pkt) {
             self.lutronRecv(pkt);
         }).bind(null, node));
         this.telnet.on('connect', function () {
-            this.connected = true;
-            console.log('telnet connect');
+            node.connected = true;
+            node.log('telnet connect');
+            updateStatus(true, 'connected');
         });
         this.telnet.on('close', function () {
-            this.connected = false;
-            console.log('telnet close');
+            if (node.connected) {
+                node.log('telnet close');
+            }
+            node.connected = false;
+            updateStatus(false, 'closed');
         });
         this.telnet.on('error', function () {
-            console.log('telent error');
+            if (node.connected) {
+                node.warn('telnet error');
+            }
+            updateStatus(false, 'telnet error');
         });
         this.telnet.on('failedlogin', function () {
-            console.log('telent failed login');
+            node.warn('telnet failed login');
+            updateStatus(false, 'login failed');
         });
+        this.telnet.on('timeout', function () {
+            if (node.connected) {
+                node.log('telnet timeout');
+            }
+        });
+        this.telnet.on('end', function () {
+            let status = 'ended';
+            if (node.connected) {
+                // This happens periodically (on bridge updates?)
+                // so try reconnecting afterwards
+                node.warn('telnet remote ended connection');
+                status = 'reconnecting';
+                reconnect();
+            }
+
+            updateStatus(false, status);
+        });
+
+        // Lutron handlers
         this.lutronSend = function (msg, fn) {
-            this.telent.getSocket().write(msg + '\n', fn);
+            this.telnet.getSocket().write(msg + '\n', fn);
         }
-        this.lutrongUpdate = function (deviceId, fn) {
+        this.lutronUpdate = function (deviceId, fn) {
             this.lutronSend('?OUTPUT,' + deviceId + ',1', fn);
         }
         this.lutronSend = function (deviceId, val, fn) {
@@ -66,7 +111,7 @@ module.exports = function (RED) {
                 var deviceId = parseInt(cs[1])
                 var action = parseInt(cs[2])
                 var param = parseFloat(cs[3])
-                //              console.log('[',cmd,',', type, ',',deviceId,
+                //              this.log('[',cmd,',', type, ',',deviceId,
                 //              ',', action,',', param,']')
                 this.lutronEvent.emit('data', {
                     cmd: cmd,
@@ -86,6 +131,16 @@ module.exports = function (RED) {
                 }
             }
         }
+
+        // Cleanup on close
+        node.on('close', function(done) {
+            node.log('Node shutting down');
+            node.connected = false;
+            node.telnet.end()
+                .catch(() => this.telnet.destroy())
+                .finally(done);
+        });
+
         this.telnet.connect(params);
     }
     RED.nodes.registerType('lutron-config', LutronConfigNode);
